@@ -1,0 +1,629 @@
+openapi: 3.0.0
+
+info:
+  title: E-commerce API
+  description: API for an e-commerce platform
+  version: 1.0.0
+  contact:
+    name: Abeer Alnakhli
+    email: Abeer.alnakhli@integrify.io
+
+servers:
+  - url: http://localhost:3001
+
+tags:
+  - name: products
+    description: everything about products
+  - name: categories
+    description: everything about categories
+  - name: users
+    description: everything about users
+  - name: orders
+    description: everything about orders    
+  
+components:
+  schemas:
+    Product:
+      type: object
+      required:
+        - id
+        - name
+        - image
+        - categories
+        - price
+      properties:
+        id:
+          type: number
+          description: the id of the product will be automatically generated in the backend
+        name:
+          type: string
+          description: the name of the product
+        image:
+          type: string
+          description: the url of the product image
+        description:
+          type: string
+          description: the description of the product
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+        variants:
+          type: array
+          items:
+            type: string
+          description: the variants of the product
+        sizes:
+          type: array
+          items:
+            type: string
+          description: the sizes of the product
+        price:
+          type: number
+          description: the price of the product
+      example:
+        id: 1
+        name: Apple Iphone 15 pro
+        image:  https://m.media-amazon.com/images/I/81SigpJN1KL._SL1500_.jpg
+        description: Latest smartphone with advanced features
+        categories: [1, 3]
+        variants: ["64GB", "128GB"]
+        sizes: []
+        price: 5699
+    Category:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: number
+          description: the id of the category will be automatically generated in the backend
+        name:
+          type: string
+          description: the name of the category
+      example:
+        id: 1
+        name: Electronics
+    User:
+      type: object
+      required:
+        - id
+        - firstName
+        - lastName
+        - email
+        - password
+        - role
+        - ban
+      properties:
+        id:
+          type: number
+          description: the id of the user will be automatically generated in the backend
+        firstName:
+          type: string
+          description: the first name of the user
+        lastName:
+          type: string
+          description: the last name of the user
+        email:
+          type: string
+          description: the email of the user
+        password:
+          type: string
+          description: the password of the user
+        role:
+          type: string
+          description: the role of the user
+        ban:
+          type: boolean
+          description: the ban status of the user
+      example:
+        id: 1
+        firstName: John
+        lastName: Doe
+        email: john.doe@example.com
+        password: hashed_password
+        role: admin
+        ban: false
+    Order:
+      type: object
+      required:
+        - id
+        - productId
+        - userId
+        - purchasedAt
+      properties:
+        id:
+          type: number
+          description: the id of the order will be automatically generated in the backend
+        productId:
+          type: number
+          description: the id of the product
+        userId:
+          type: number
+          description: the id of the user
+        purchasedAt:
+          type: string
+          description: the date of purchasing
+      example:
+        id: 1
+        productId: 1
+        userId: 1
+        purchasedAt: 2023-09-18
+paths:
+  /products:
+    get:
+      tags:
+        - products
+      summary: get a list of products
+      parameters:
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: number
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: number
+        - in: query
+          name: sortBy
+          required: false
+          schema:
+            type: string
+            enum:
+            - 'Name (A - Z)'
+            - 'Name (Z - A)'
+      responses:
+        200:
+          description: all products are returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'    
+        500:
+          description: server error
+    post:
+      tags:
+        - products
+      summary: create a product
+      requestBody:
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/Product'
+      responses:
+        201:
+          description: the product is created
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/Product'
+        500:
+          description: server error
+  /products/{productId}:
+    get:
+      tags:
+        - products
+      summary: get a single product
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: the product is returned
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/Product'
+        404:
+          description: product is not found
+        500:
+          description: server error
+    delete:
+      tags:
+        - products
+      summary: delete a single product
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: the product is deleted
+        500:
+          description: server error
+    put:
+      tags:
+        - products
+      summary: update a product
+      requestBody:
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/Product'
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: the product is updated
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/Product'
+        500:
+          description: server error
+  /products/searchText:
+    get:
+      tags:
+        - products
+      summary: search products by name
+      parameters:
+        - in: query
+          name: searchText
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: all the products are returned based on the search value
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'    
+        500:
+          description: server error
+  /categories:
+    get:
+      tags:
+        - categories
+      summary: get a list of categories
+      parameters:
+        - in: query
+          name: sortBy
+          required: false
+          schema:
+            type: string
+            enum:
+            - 'Name (A - Z)'
+            - 'Name (Z - A)'
+      responses:
+        200:
+          description: all categories are returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'    
+        500:
+          description: server error
+    post:
+      tags:
+        - categories
+      summary: create a category
+      requestBody:
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/Category'
+      responses:
+        201:
+          description: the category is created
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/Category'
+        500:
+          description: server error
+  /categories/{categoryId}:
+    get:
+      tags:
+        - categories
+      summary: get a category
+      parameters:
+        - in: path
+          name: categoryId
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: the category is returned
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/Category'    
+        500:
+          description: server error
+    delete:
+      tags:
+        - categories
+      summary: delete a category
+      parameters:
+        - in: path
+          name: categoryId
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: the category is deleted
+        500:
+          description: server error
+    put:
+      tags:
+        - categories
+      summary: update a category
+      requestBody:
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/Category'
+      parameters:
+        - in: path
+          name: categoryId
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: the category is updated
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/Category'
+        500:
+          description: server error
+  /users:
+    get:
+      tags:
+        - users
+      summary: get a list of users
+      parameters:
+        - in: query
+          name: sortBy
+          required: false
+          schema:
+            type: string
+            enum:
+            - 'Name (A - Z)'
+            - 'Name (Z - A)'
+      responses:
+        200:
+          description: all users are returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'    
+        500:
+          description: server error
+  /users/{userId}:
+    get:
+      tags:
+        - users
+      summary: get a user
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: the user is returned
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/User'    
+        500:
+          description: server error
+    delete:
+      tags:
+        - users
+      summary: delete a user
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: the user is deleted
+        500:
+          description: server error
+    put:
+      tags:
+        - users
+      summary: update a user
+      requestBody:
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/User'
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: the user is updated
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/User'
+        500:
+          description: server error
+  /login:
+    post:
+      tags:
+        - users
+      summary: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                  password:
+                    type: string
+      responses:
+        200:
+          description: user authenticated successfully
+        401:
+          description: unauthorized
+        500:
+          description: server error
+  /logout:
+    post:
+      tags:
+        - users
+      summary: logout
+      responses:
+        200:
+          description: user logged out successfully
+        500:
+          description: server error
+  /register:
+    post:
+      tags:
+        - users
+      summary: create a user
+      requestBody:
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/User'
+      responses:
+        201:
+          description: the user is created
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/User'
+        500:
+          description: server error
+  /orders:
+    get:
+      tags:
+        - orders
+      summary: get a list of orders
+      parameters:
+        - in: query
+          name: sortBy
+          required: false
+          schema:
+            type: string
+            enum:
+            - 'Date (Oldest - Newest)'
+            - 'Date (Newest - Oldest)'
+      responses:
+        200:
+          description: all orders are returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'    
+        500:
+          description: server error
+    post:
+      tags:
+        - orders
+      summary: create an order
+      requestBody:
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/Order'
+      responses:
+        201:
+          description: the order is created
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/Order'
+        500:
+          description: server error
+  /orders/{orderId}:
+    get:
+      tags:
+        - orders
+      summary: get an order
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: the order is returned
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/Order'    
+        500:
+          description: server error
+          
+    delete:
+      tags:
+        - orders
+      summary: delete an order
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: the order is deleted
+        500:
+          description: server error
+    put:
+      tags:
+        - orders
+      summary: update an order
+      requestBody:
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/Order'
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: number
+      responses:
+        200:
+          description: the order is updated
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/Order'
+        500:
+          description: server error
